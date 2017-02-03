@@ -1,0 +1,22 @@
+{
+  "name": "janet",
+  "version": "0.0.1",
+  "description": "A NodeJS-based IRC bot",
+  "main": "janet.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@lewisdale.me:lewis/Janet.git"
+  },
+  "keywords": [
+    "irc",
+    "bot"
+  ],
+  "author": "Lewis Dale <lewis@lewisdale.co.uk>",
+  "license": "MIT",
+  "dependencies": {
+    "irc": "^0.5.2"
+  }
+}
