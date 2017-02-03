@@ -1,15 +1,18 @@
 const fs = require('fs')
 
 const irc = require('irc')
+const PubSub = require('pubsub-js')
+
+const MessagePubSub = require('pubsub-js')
 
 class Janet {
   
   constructor() {
     this.config = this.loadConfig()
-    this.modules = {
-      'pm': [],
-      'join': [],
-      'message': []
+
+    this.events = {
+      'join': require('pubsub-js'),
+      'message': require('pubsub-js')
     }
 
     this.loadModules()
@@ -21,6 +24,20 @@ class Janet {
       }
     )
 
+    this.client.addListener('message', (from, to, message) => {
+      if(message.substr(0,6) === "Janet,") {
+        let command = message.replace('Janet, ','').trim()
+        this.events.message.publish(command, {
+          from: from,
+          to: to,
+          message: message
+        })
+      }
+    })
+
+    this.client.addListener('join', (channel, who) => {
+        PubSub.publish('join', who)
+    })
   }
 
   /**
@@ -37,18 +54,28 @@ class Janet {
   loadModules() {
     let files = fs.readdirSync('modules')
     for (let file of files) {
+
       if (file.substr(-3) === '.js') {
         let title = file.substr(0, file.length - 3)
 
-        if (title !== 'module') {
-          let module = require('./modules/' + title)
+        if (title !== 'janetmodule') {
+          let module = require('./modules/' + title)(this)
+         
           for(let method of module.methods) {
-            if (method in this.modules) {
-              this.modules[method].push(module)
-            }
+            this.events[method].subscribe(module.command, (...args) => { 
+              module.respond(...args) })
           }
         }
       }
+    }
+  }
+  
+  /**
+   * Says a phrase across all of the joined channels
+   */
+  say(phrase) {
+    for (let channel of this.config.irc.channels) {
+      this.client.say(channel, phrase)
     }
   }
 }

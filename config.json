@@ -1,10 +1,10 @@
 {
   "irc": {
-    "server": "jfc.im",
-    "port": 6697,
+    "server": "localhost",
+    "port": 6667,
     "user": "Janet",
     "channels": [
-      "#team2"
+      "#botchannel"
     ]
   }
 }

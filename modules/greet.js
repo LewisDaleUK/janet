@@ -1,21 +1,27 @@
-const Module = require('./module')
+const JanetModule = require('./janetmodule')
 
-class Greet extends Module {
+/**
+ * A simple greet module that says a friendly hello when somebody joins
+ * @author Lewis Dale
+ */
+class Greet extends JanetModule {
 
-  constructor() {
+  constructor(client) {
     super({
       name: 'Greet',
       showInHelp: false,
-      command: 'Hello',
+      command: 'join',
       methods: ['join']
-    })
-
-    this.test = {}
+    }, client)
   }
   
-  respond(input) {
-    return "Hello, " + input
+  respond(event, who) {
+    if (who !== "Janet") {
+      this.client.say("Hello, " + who)
+    }
   }
 }
 
-module.exports = new Greet()
+module.exports = (client) => {
+  return new Greet(client)
+}

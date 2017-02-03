@@ -1,4 +1,4 @@
-class Module {
+class JanetModule {
   
   /**
    * Construct a new Modules instance
@@ -8,7 +8,7 @@ class Module {
    * @param opts.command: The command that triggers the action
    * @param opts.methods: A list of contact methods where the command is available
    */
-  constructor(opts = {}) {
+  constructor(opts = {}, client) {
     let keys = [
       'name',
       'showInHelp',
@@ -22,6 +22,11 @@ class Module {
       }
 
       this[key] = opts[key]
+
+      if (client === undefined || client === null) {
+        throw new TypeError("Client object was not passed to the module")
+      }
+      this.client = client
     }
 
   }
@@ -30,9 +35,9 @@ class Module {
    * Response to the input, triggered by the command
    * @return A string response
    */
-  respond(input) {
+  respond() {
     throw new TypeError("Function respond has not been implemented. Please override Module.respond()")
   }
 }
 
-module.exports = Module
+module.exports = JanetModule
