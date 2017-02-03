@@ -13,7 +13,7 @@ Configuration is stored in `config.json`. Example configuration file:
     "port": 6667,
     "user": "Janet",
     "channels": [
-      "#channel1".
+      "#channel1",
       "#channel2"
     ]
   }
