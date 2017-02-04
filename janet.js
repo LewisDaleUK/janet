@@ -1,18 +1,16 @@
 const fs = require('fs')
 
 const irc = require('irc')
-const PubSub = require('pubsub-js')
-
-const MessagePubSub = require('pubsub-js')
 
 class Janet {
-  
+
   constructor() {
     this.config = this.loadConfig()
 
     this.events = {
       'join': require('pubsub-js'),
-      'message': require('pubsub-js')
+      'message': require('pubsub-js'),
+      'pm': require('pubsub-js'),
     }
 
     this.loadModules()
@@ -25,18 +23,31 @@ class Janet {
     )
 
     this.client.addListener('message', (from, to, message) => {
-      if(message.substr(0,6) === "Janet,") {
-        let command = message.replace('Janet, ','').trim()
+      console.log("DEBUG: A message was received")
+      let commandEnd = message.indexOf('?')
+      if(message.substr(0,6) === "Janet," && commandEnd !== -1) {
+        let command = message.substr(0,commandEnd + 1).replace('Janet, ','').trim()
+        let variables = message.substr(commandEnd + 1, message.length).split(',')
         this.events.message.publish(command, {
           from: from,
           to: to,
-          message: message
+          message: message,
+          variables: variables
         })
       }
     })
 
     this.client.addListener('join', (channel, who) => {
-        PubSub.publish('join', who)
+      console.log("DEBUG: A new user joined")
+      this.events.join.publish('join', who)
+    })
+
+    this.client.addListener('pm', (nick, text, message) => {
+      console.log("DEBUG: A pm was received")
+      this.events.pm.publish(text, {
+        from: nick,
+        message: message
+      })
     })
   }
 
@@ -59,17 +70,27 @@ class Janet {
         let title = file.substr(0, file.length - 3)
 
         if (title !== 'janetmodule') {
+          delete require.cache[require.resolve('./modules/' + title)]
           let module = require('./modules/' + title)(this)
-         
+
           for(let method of module.methods) {
-            this.events[method].subscribe(module.command, (...args) => { 
+            this.events[method].subscribe(module.command, (...args) => {
               module.respond(...args) })
           }
         }
       }
     }
   }
-  
+
+  /**
+   * Clear the module list
+   */
+  clearModules() {
+    for(let key in this.events) {
+      this.events[key].clearAllSubscriptions()
+    }
+  }
+
   /**
    * Says a phrase across all of the joined channels
    */

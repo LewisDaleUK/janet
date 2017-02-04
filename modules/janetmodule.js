@@ -15,7 +15,7 @@ class JanetModule {
       'command',
       'methods'
     ]
-     
+
     for(let key of keys) {
       if(!(key in opts)) {
         throw new TypeError("Key " + key + " is missing from Module options")
@@ -30,7 +30,7 @@ class JanetModule {
     }
 
   }
-  
+
   /**
    * Response to the input, triggered by the command
    * @return A string response
