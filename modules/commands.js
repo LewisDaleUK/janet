@@ -8,7 +8,7 @@ class Commands extends JanetModule {
       name: 'Commands',
       command: 'what commands are available?',
       showInHelp: true,
-      methods: ['message'],
+      methods: ['message', 'pm'],
     }, client)
   }
 

@@ -1,17 +1,15 @@
 const fs = require('fs')
 
+const PubSub = require('pubsub-js')
 const irc = require('irc')
+const nlp = require('compromise')
 
 class Janet {
 
   constructor() {
     this.config = this.loadConfig()
-
-    this.events = {
-      'join': require('pubsub-js'),
-      'message': require('pubsub-js'),
-      'pm': require('pubsub-js'),
-    }
+    
+    this.events = PubSub
 
     this.loadModules()
     this.client = new irc.Client(
@@ -22,13 +20,17 @@ class Janet {
       }
     )
 
-    this.client.addListener('message', (from, to, message) => {
+    this.client.addListener('message', (nick, to, text, message) => {
+      if(to === "Janet") { //Stops pm's being processed twice
+        return
+      }
+
       console.log("DEBUG: A message was received")
       let commandEnd = message.indexOf('?')
       if(message.substr(0,6) === "Janet," && commandEnd !== -1) {
         let command = message.substr(0,commandEnd + 1).replace('Janet, ','').trim()
         let variables = message.substr(commandEnd + 1, message.length).split(',')
-        this.events.message.publish(command, {
+        this.events.publish('message: ' + command, {
           from: from,
           to: to,
           message: message,
@@ -39,15 +41,24 @@ class Janet {
 
     this.client.addListener('join', (channel, who) => {
       console.log("DEBUG: A new user joined")
-      this.events.join.publish('join', who)
+      this.events.publish('join: join', who)
     })
 
     this.client.addListener('pm', (nick, text, message) => {
       console.log("DEBUG: A pm was received")
-      this.events.pm.publish(text, {
-        from: nick,
-        message: message
-      })
+      let q = nlp(text)
+      let matches = q.match('#Verb . #Noun').list
+
+      for(let match of matches) {
+        let verb = match.terms[0]
+        let noun = match.terms[2]
+        this.events.publish('pm: ' + verb.text, {
+          function: noun.text,
+          from: nick,
+          text: text,
+        })
+
+      }
     })
   }
 
@@ -74,7 +85,7 @@ class Janet {
           let module = require('./modules/' + title)(this)
 
           for(let method of module.methods) {
-            this.events[method].subscribe(module.command, (...args) => {
+            this.events.subscribe(method + ': ' + module.command, (...args) => {
               module.respond(...args) })
           }
         }
@@ -86,9 +97,7 @@ class Janet {
    * Clear the module list
    */
   clearModules() {
-    for(let key in this.events) {
-      this.events[key].clearAllSubscriptions()
-    }
+    this.events.clearAllSubscriptions()
   }
 
   /**

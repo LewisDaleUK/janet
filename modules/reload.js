@@ -6,7 +6,7 @@ class Reload extends JanetModule {
     super({
       name: 'Reload',
       showInHelp: false,
-      command: 'reload',
+      command: 'load',
       methods: ['pm']
     }, client)
   }
