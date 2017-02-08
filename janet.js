@@ -8,7 +8,6 @@ class Janet {
 
   constructor() {
     this.config = this.loadConfig()
-    
     this.events = PubSub
 
     this.loadModules()
@@ -16,7 +15,8 @@ class Janet {
       this.config.irc.server,
       this.config.irc.user,
       {
-        channels: this.config.irc.channels
+        channels: this.config.irc.channels,
+        port: this.config.irc.port
       }
     )
 
@@ -26,14 +26,15 @@ class Janet {
       }
 
       console.log("DEBUG: A message was received")
-      let commandEnd = message.indexOf('?')
-      if(message.substr(0,6) === "Janet," && commandEnd !== -1) {
-        let command = message.substr(0,commandEnd + 1).replace('Janet, ','').trim()
-        let variables = message.substr(commandEnd + 1, message.length).split(',')
+      console.log(text)
+      let commandEnd = text.indexOf('?')
+      if(text.substr(0,6) === "Janet," && commandEnd !== -1) {
+        let command = text.substr(0,commandEnd + 1).replace('Janet, ','').trim()
+        let variables = text.substr(commandEnd + 1, text.length).split(',')
         this.events.publish('message: ' + command, {
           from: from,
           to: to,
-          message: message,
+          message: text,
           variables: variables
         })
       }
@@ -52,8 +53,8 @@ class Janet {
       for(let match of matches) {
         let verb = match.terms[0]
         let noun = match.terms[2]
-        this.events.publish('pm: ' + verb.text, {
-          function: noun.text,
+        this.events.publish('pm: ' + noun.text, {
+          module: verb.text,
           from: nick,
           text: text,
         })

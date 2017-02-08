@@ -11,14 +11,15 @@ class Video extends JanetModule {
     super({
       name: 'Video',
       showInHelp: true,
-      command: 'play',
+      command: 'video',
       methods: ['pm', 'message']
     }, client)
   }
 
   respond(evt, data) {
     let msg = nlp(data.text)
-    console.log(msg)
+
+    console.log(msg.match('" * "'))
   }
 }
 
